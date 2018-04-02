@@ -33,20 +33,48 @@ namespace SimpleNeuralNetwork
         static void Main(string[] args)
         {
             Matrix<double> x = DenseMatrix.OfArray(new double[,] {
-                                    {0,0,1},
-                                    {0,1,1},
-                                    {1,0,1},
-                                    {1,1,1} });
+                                    {0.095,0.015,0.02},
+                                    {0.095,0.070,0.002},
+                                    {0.065,0.010,0.003},
+                                    {0.012,0.025,0.005},
+                                    {0.03, 0.012, 0.06},
+                                    {0.065, 0.05, 0.003},
+                                    {0.045, 0.07, 0.02},
+                                    {0.1, 0.02, 0.065},
+                                    {0.007, 0.008, 0.010},
+                                    {0.003, 0.004, 0.005},
+                                    {0.015, 0.012, 0.006},
+                                    {0.32, 0.089, 0.02},
+                                    {0.05, 0.02, 0.1},
+                                    {0.12, 0.04, 0.02},
+                                    {0.22, 0.06, 0.02} });
 
-            Matrix<double> y = DenseVector.OfArray(new double[] { 0, 1, 1, 0 }).ToColumnMatrix();
+            Matrix<double> y = DenseMatrix.OfArray(new double[,] {
+                                    {0,0,0,0},
+                                    {0,0,0,0},
+                                    {0,0,0,1},
+                                    {0,0,1,0},
+                                    {1,0,0,0},
+                                    {0,0,1,0},
+                                    {0,0,1,0},
+                                    {1,0,0,0},
+                                    {0,0,0,1},
+                                    {0,0,0,1},
+                                    {0,0,0,1},
+                                    {0,1,0,0},
+                                    {1,0,0,0},
+                                    {0,0,0,0},
+                                    {0,1,0,0},});
+
+            //Matrix<double> y = DenseVector.OfArray(new double[] { 0, 1, 1, 0 }).ToColumnMatrix();
 
             Matrix<double> syn0 = 2 * Matrix<double>.Build.Random(3, 4, 1) - 1;
-            Matrix<double> syn1 = 2 * Matrix<double>.Build.Random(4, 1, 1) - 1;
+            Matrix<double> syn1 = 2 * Matrix<double>.Build.Random(4, 4, 1) - 1;
 
             Matrix<double> l1 = Matrix<double>.Build.Random(1,1);
             Matrix<double> l2 = Matrix<double>.Build.Random(1,1);
 
-            for (var i = 0; i < 60000; i++)
+            for (var i = 0; i < 100000; i++)
             {
                 var l0 = x;
 
@@ -64,25 +92,26 @@ namespace SimpleNeuralNetwork
                 var l1_error = l2_delta * syn1.Transpose();
 
                 var refer1 = nonlin(l0 * syn0);
-                var l1_delta = l1_error * nonlin(refer1, true);
+                var l1_delta = l1_error.PointwiseMultiply(nonlin(refer1, true));
 
                 syn1 += l1.Transpose() * l2_delta;
                 syn0 += l0.Transpose() * l1_delta;
 
             }
 
-            Console.WriteLine("Выходные данные после тренировки:");
-            Console.WriteLine(l1);
+            //Console.WriteLine("Выходные данные после тренировки:");
+            //Console.WriteLine(l1);
 
             Console.WriteLine("Выходные данные после тренировки:");
             Console.WriteLine(l2);
 
 
-            //Matrix<double> x_test = DenseVector.OfArray(new double[] { 0.75, 0.85, 0.95 }).ToColumnMatrix();
-            //l1 = nonlin(x_test.Transpose() * syn0);
+            Matrix<double> x_test = DenseVector.OfArray(new double[] { 0.31053, 0.04722, 0.13721}).ToColumnMatrix();
+            l1 = nonlin(x_test.Transpose() * syn0);
+            l2 = nonlin(l1 * syn1);
 
-            //Console.WriteLine("Ответ по тестовой выборке:");
-            //Console.WriteLine(l1);
+            Console.WriteLine("Ответ по тестовой выборке:");
+            Console.WriteLine(l2);
 
             Console.ReadKey();
         }
