@@ -97,6 +97,26 @@ namespace SimpleNeuralNetwork
             return DenseMatrix.OfArray(population);
         }
 
+        public static List<double> Mutation(Matrix<double> genom, double t = 0.5, double m = 0.1)
+        {
+            Random r = new Random(1);
+
+            List<double> mutant = new List<double>();
+
+            foreach (Tuple<int,int,double> gen in genom.Storage.EnumerateIndexed())
+            {
+                if (r.NextDouble() <= t)
+                {
+                    genom.Storage[gen.Item1,gen.Item2] += m * (2 * r.NextDouble() - 1);
+                }
+
+                mutant.Add(genom.Storage[gen.Item1, gen.Item2]);
+            }
+
+            return mutant;
+        }
+
+
         static void Main(string[] args)
         {
             
