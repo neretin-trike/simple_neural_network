@@ -30,8 +30,32 @@ namespace SimpleNeuralNetwork
             return x;
         }
 
+        public static Matrix<double> binaryCrossEnetropy(Matrix<double> X, Matrix<double> Y, Matrix<double> sync)
+        {
+            Matrix<double> J = Matrix<double>.Build.Random(15, 4);
+
+            var m = X.ColumnCount * X.RowCount;
+
+            foreach (Tuple<int, int, double> x in X.Storage.EnumerateIndexed())
+            {
+                
+                var a = Y[x.Item1, x.Item2] * Matrix.Log(nonlin(X*sync));
+                var b = (1 - Y[x.Item1, x.Item2]) * Matrix.Log(1 - nonlin(X * sync));
+                J += a + b;
+
+                //var a = y.Item3 * Matrix.Log(nonlin(X[y.Item1, y.Item2] * sync));
+                //var b = Matrix.Log(1 - nonlin(X[y.Item1, y.Item2] * sync));
+                //J += -(1 / m) * (a + (1 - y.Item3) * b);
+            }
+
+            J = -(1 / m) * J;
+
+            return J;
+        }
+
         static void Main(string[] args)
         {
+            
             Matrix<double> x = DenseMatrix.OfArray(new double[,] {
                                     {0.095,0.015,0.02},
                                     {0.095,0.070,0.002},
@@ -50,26 +74,26 @@ namespace SimpleNeuralNetwork
                                     {0.22, 0.06, 0.02} });
 
             Matrix<double> y = DenseMatrix.OfArray(new double[,] {
-                                    {0,0,0,0},
-                                    {0,0,0,0},
-                                    {0,0,0,1},
-                                    {0,0,1,0},
-                                    {1,0,0,0},
-                                    {0,0,1,0},
-                                    {0,0,1,0},
-                                    {1,0,0,0},
-                                    {0,0,0,1},
-                                    {0,0,0,1},
-                                    {0,0,0,1},
-                                    {0,1,0,0},
-                                    {1,0,0,0},
-                                    {0,0,0,0},
-                                    {0,1,0,0},});
+                                    {1, 0, 0, 0, 0},
+                                    {1, 0, 0, 0, 0},
+                                    {0, 1, 0, 0, 0},
+                                    {0, 0, 1, 0, 0},
+                                    {0, 0, 0, 0, 1},
+                                    {0, 0, 1, 0, 0},
+                                    {0, 0, 1, 0, 0},
+                                    {0, 0, 0, 0, 1},
+                                    {0, 1, 0, 0, 0},
+                                    {0, 1, 0, 0, 0},
+                                    {0, 1, 0, 0, 0},
+                                    {0, 1, 0, 0, 0},
+                                    {0, 0, 0, 1, 0},
+                                    {1, 0, 0, 0, 0},
+                                    {0, 0, 0, 1, 0} });
 
             //Matrix<double> y = DenseVector.OfArray(new double[] { 0, 1, 1, 0 }).ToColumnMatrix();
 
-            Matrix<double> syn0 = 2 * Matrix<double>.Build.Random(3, 4, 1) - 1;
-            Matrix<double> syn1 = 2 * Matrix<double>.Build.Random(4, 4, 1) - 1;
+            Matrix<double> syn0 = 2 * Matrix<double>.Build.Random(3, 6, 1) - 1;
+            Matrix<double> syn1 = 2 * Matrix<double>.Build.Random(6, 5, 1) - 1;
 
             Matrix<double> l1 = Matrix<double>.Build.Random(1,1);
             Matrix<double> l2 = Matrix<double>.Build.Random(1,1);
@@ -87,11 +111,14 @@ namespace SimpleNeuralNetwork
                     Console.WriteLine( "Error: {0}", Statistics.Mean(l2_error.Storage.Enumerate()));
 
                 var refer2 = nonlin(l1 * syn1);
-                var l2_delta = l2_error.PointwiseMultiply( nonlin(refer2, true) );
+                // Метод наименьших квадратов (квадратичная ошибка)
+                //var l2_delta = l2_error.PointwiseMultiply( binaryCrossEnetropy(l1,y,syn1));
+                var l2_delta = l2_error.PointwiseMultiply(nonlin(refer2, true));
 
                 var l1_error = l2_delta * syn1.Transpose();
-
                 var refer1 = nonlin(l0 * syn0);
+                // Метод наименьших квадратов (квадратичная ошибка)
+                //var l1_delta = l1_error.PointwiseMultiply(binaryCrossEnetropy(l0, y, syn0));
                 var l1_delta = l1_error.PointwiseMultiply(nonlin(refer1, true));
 
                 syn1 += l1.Transpose() * l2_delta;
