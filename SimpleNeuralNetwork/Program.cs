@@ -8,6 +8,15 @@ using MathNet.Numerics.Statistics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
+using Accord.Controls;
+using Accord.IO;
+using Accord.Math;
+using Accord.Statistics.Distributions.Univariate;
+using Accord.MachineLearning.Bayes;
+using Accord.MachineLearning.VectorMachines.Learning;
+using Accord.Statistics.Kernels;
+using Accord.Statistics.Analysis;
+
 namespace SimpleNeuralNetwork
 {
     class Program
@@ -116,10 +125,57 @@ namespace SimpleNeuralNetwork
             return mutant;
         }
 
-
         static void Main(string[] args)
         {
-            
+            double[][] inputs =
+            {
+                new double[] {0.290221,0.129412,0.2},
+                new double[] {0.290221,0.776471,0},
+                new double[] {0.195584,0.070588,0.010204},
+                new double[] {0.028391,0.247059,0.030612},
+                new double[] {0.085174, 0.094118, 0.591837},
+                new double[] {0.195584, 0.541176, 0.010204},
+                new double[] {0.132492, 0.776471, 0.183673},
+                new double[] {0.305994, 0.188235, 0.642857},
+                new double[] {0.012618, 0.047059, 0.081633},
+                new double[] {0, 0, 0.030612},
+                new double[] {0.037855, 0.094118, 0.040816},
+                new double[] {1, 1, 0.183673},
+                new double[] {0.148265, 0.188235,1},
+                new double[] {0.369085, 0.423529, 0.183673},
+                new double[] {0.684543, 0.658824, 0.183673}
+            };
+
+            int[] outputs = // those are the class labels
+            {
+                0, 0, 0, 0, 0,
+                1, 1, 1, 1, 1,
+                2, 2, 2, 2, 2,
+            };
+
+            // Create a one-vs-one multi-class SVM learning algorithm 
+            var teacher = new MulticlassSupportVectorLearning<Linear>()
+            {
+                // using LIBLINEAR's L2-loss SVC dual for each SVM
+                Learner = (p) => new LinearDualCoordinateDescent()
+                {
+                    Loss = Loss.L2
+                }
+            };
+
+            // Learn a machine
+            var machine = teacher.Learn(inputs, outputs);
+
+            // Obtain class predictions for each sample
+            int[] predicted = machine.Decide(inputs);
+
+            // Compute classification accuracy
+            double acc = new GeneralConfusionMatrix(expected: outputs, predicted: predicted).Accuracy;
+
+            var bac = 0;
+
+
+
             Matrix<double> x = DenseMatrix.OfArray(new double[,] {
                                     {95, 15, 20},
                                     {95, 70, 2},
